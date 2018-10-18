@@ -38,7 +38,17 @@
                    :description :description
                    :msrp (partial price-type "MSRP")
                    :online_price (partial price-type "Online")
-                   :default_price (partial price-type "Default")}}])
+                   :default_price (partial price-type "Default")}}
+   {:schema/table "sale_lines"
+    :schema/data-key :data/sale-lines
+    :schema/attrs {:id (comp parse-int :saleLineID)
+                   :sale-id (comp parse-int :saleID)
+                   :item-id (comp parse-int :itemID)
+                   :created-at (comp parse-date :createTime)
+                   :unit-qty (comp parse-int :unitQuantity)
+                   :unit-price (comp double->cents :unitPrice)
+                   :price (comp double->cents :calcTotal)
+                   :discount (comp double->cents :discountAmount)}}])
 
 (defn transform [schema-attrs item]
   (map-vals #(% item) schema-attrs))
