@@ -72,7 +72,7 @@
 (defn- insert-dummy-item! [db]
   (jdbc/insert! db "items"
                 {:id 0
-                 :created-at (java.sql.Timestamp. 0)
+                 :created-at (java.sql.Timestamp. 1506816000000)
                  :sku "0"
                  :description "Dummy -- Item was deleted"
                  :msrp 0
@@ -83,7 +83,7 @@
 (defn- insert-dummy-sale! [db]
   (jdbc/insert!
    db "sales"
-   {:id 0 :created-at (java.sql.Timestamp. 0) :completed false :total 0}
+   {:id 0 :created-at (java.sql.Timestamp. 1506816000000) :completed false :total 0}
    {:entities unkeywordize}))
 
 (defn import! [db]
