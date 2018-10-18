@@ -13,11 +13,13 @@
 (defn read-json [file]
   (json/read file :key-fn keyword))
 
+(def xml-legacy-vector #(if (map? %) (vector %) %))
+
 (defn join-json-files [dir key]
   (->> (file-seq (io/file dir))
        (filter #(str/ends-with? (.getName %) ".json"))
        (map (comp read-json io/reader))
-       (mapcat key)))
+       (mapcat (comp xml-legacy-vector key))))
 
 (defn read-data []
   {:data/sales (join-json-files "resources/data/sales" :Sale)
