@@ -18,13 +18,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Persisting
 
+(defn- price-type [type sale-line]
+  (->> (get-in sale-line [:Prices :ItemPrice])
+       (filter (comp #{type} :useType))
+       first :amount double->cents))
+
 (def SCHEMA
   [{:schema/table "sales"
     :schema/data-key :data/sales
     :schema/attrs {:id (comp parse-int :saleID)
                    :created-at (comp parse-date :createTime)
                    :completed (comp parse-bool :completed)
-                   :total (comp double->cents :total)}}])
+                   :total (comp double->cents :total)}}
+   {:schema/table "items"
+    :schema/data-key :data/items
+    :schema/attrs {:id (comp parse-int :itemID)
+                   :created-at (comp parse-date :createTime)
+                   :sku :systemSku
+                   :description :description
+                   :msrp (partial price-type "MSRP")
+                   :online_price (partial price-type "Online")
+                   :default_price (partial price-type "Default")}}])
 
 (defn transform [schema-attrs item]
   (map-vals #(% item) schema-attrs))
@@ -36,13 +50,14 @@
 ;; Core
 
 (defn import! [db]
+  (jdbc/execute! db ["truncate sales, sale_lines, items"])
   (let [data (read-data)]
-    (for [{:schema/keys [table data-key attrs]} SCHEMA]
-      (jdbc/insert-multi!
-       db table
-       (map (partial transform attrs) (get data data-key))
-       {:entities unkeywordize}))))
+    (doseq [{:schema/keys [table data-key attrs]} SCHEMA]
+      (let [coll (map (partial transform attrs) (get data data-key))]
+        (println (format "Persisting %s - %s records" table (count coll)))
+        (jdbc/insert-multi! db table coll {:entities unkeywordize})))))
 
 (comment
   (let [db "postgresql://localhost:5432/blackfish_metrics"]
-    (import! db)))
+    (import! db))
+  )
