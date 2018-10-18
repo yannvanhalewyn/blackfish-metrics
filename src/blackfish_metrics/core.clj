@@ -15,6 +15,9 @@
    :data/sale-lines (:SaleLine (read-json "sale_lines.json"))
    :data/items (:Item (read-json "items.json"))})
 
+(defn resource-exists? [db table id]
+  (not-empty (jdbc/query db [(format "select * from %s where id = ?" table) id])))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Persisting
 
@@ -41,6 +44,13 @@
                    :default_price (partial price-type "Default")}}
    {:schema/table "sale_lines"
     :schema/data-key :data/sale-lines
+    :before-fn (fn [db {:keys [sale-id item-id] :as sale-line}]
+                 ;; Take into account deleted records. SLOOOW improve!
+                 (let [item-id (if (resource-exists? db "items" item-id) item-id 0)
+                       sale-id (if (resource-exists? db "sales" sale-id) sale-id 0)]
+                   (assoc sale-line
+                     :item-id item-id
+                     :sale-id sale-id)))
     :schema/attrs {:id (comp parse-int :saleLineID)
                    :sale-id (comp parse-int :saleID)
                    :item-id (comp parse-int :itemID)
@@ -59,15 +69,36 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Core
 
+(defn- insert-dummy-item! [db]
+  (jdbc/insert! db "items"
+                {:id 0
+                 :created-at (java.sql.Timestamp. 0)
+                 :sku "0"
+                 :description "Dummy -- Item was deleted"
+                 :msrp 0
+                 :online-price 0
+                 :default-price 0}
+                {:entities unkeywordize}))
+
+(defn- insert-dummy-sale! [db]
+  (jdbc/insert!
+   db "sales"
+   {:id 0 :created-at (java.sql.Timestamp. 0) :completed false :total 0}
+   {:entities unkeywordize}))
+
 (defn import! [db]
   (jdbc/execute! db ["truncate sales, sale_lines, items"])
+  (insert-dummy-item! db)
+  (insert-dummy-sale! db)
   (let [data (read-data)]
-    (doseq [{:schema/keys [table data-key attrs]} SCHEMA]
-      (let [coll (map (partial transform attrs) (get data data-key))]
+    (doseq [{:schema/keys [table data-key attrs] :keys [before-fn]} SCHEMA]
+      (let [coll (map (partial transform attrs) (get data data-key))
+            coll (if before-fn (map (partial before-fn db) coll) coll)]
         (println (format "Persisting %s - %s records" table (count coll)))
         (jdbc/insert-multi! db table coll {:entities unkeywordize})))))
 
 (comment
   (let [db "postgresql://localhost:5432/blackfish_metrics"]
     (import! db))
+
   )
