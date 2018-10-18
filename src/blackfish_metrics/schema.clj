@@ -3,6 +3,31 @@
             [blackfish-metrics.utils :as u]
             [clojure.java.jdbc :as jdbc]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+
+(defn- price-type [type sale-line]
+  (->> (get-in sale-line [:Prices :ItemPrice])
+       (filter (comp #{type} :useType))
+       first :amount u/double->cents))
+
+(defn- all-ids [db table]
+  (set (map :id (jdbc/query db [(format "select id from %s" table)]))))
+
+(defn latest-id [db table]
+  (:id (first (jdbc/query db [(format "select id from %s order by id desc limit 1" table)]))))
+
+(defn- stub-missing-sale-line-relations [db sale-lines]
+  (let [item-ids (all-ids db "items")
+        sale-ids (all-ids db "sales")]
+    (map #(assoc %
+            :item-id (get item-ids (:item-id %) 0)
+            :sale-id (get sale-ids (:sale-id %) 0))
+         sale-lines)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Schema
+
 (def SCHEMA
   [{::table "sales"
     ::data-key :data/sales
@@ -27,7 +52,7 @@
     ::data-key :data/sale-lines
     ::api-root :SaleLine
     ::api-fetch #'ls/get-sale-lines
-    :before-fn #'stub-missing-relations
+    ::before-persist #'stub-missing-sale-line-relations
     ::attrs {:id (comp u/parse-int :saleLineID)
              :sale-id (comp u/parse-int :saleID)
              :item-id (comp u/parse-int :itemID)
@@ -39,25 +64,6 @@
 
 (def SCHEMA_BY_KEY (u/key-by ::data-key SCHEMA))
 
-(defn- price-type [type sale-line]
-  (->> (get-in sale-line [:Prices :ItemPrice])
-       (filter (comp #{type} :useType))
-       first :amount u/double->cents))
-
-(defn- all-ids [db table]
-  (set (map :id (jdbc/query db [(format "select id from %s" table)]))))
-
-(defn latest-id [db table]
-  (:id (first (jdbc/query db [(format "select id from %s order by id desc limit 1" table)]))))
-
-(defn- stub-missing-relations [db sale-lines]
-  (let [item-ids (all-ids db "items")
-        sale-ids (all-ids db "sales")]
-    (map #(assoc %
-            :item-id (get item-ids (:item-id %) 0)
-            :sale-id (get sale-ids (:sale-id %) 0))
-         sale-lines)))
-
 (defn make-parser [key]
   (fn [coll]
     (map (fn [e] (u/map-vals #(% e) (get-in SCHEMA_BY_KEY [key ::attrs])))
@@ -66,10 +72,13 @@
 (defn get-schema [key]
   (get SCHEMA_BY_KEY key))
 
-(defn make-persister [key]
+(defn make-persister [data-key]
   (fn [db coll]
-    (let [table (::table (get-schema key))
+    (let [{::keys [table before-persist]} (get-schema data-key)
           new-records (remove (comp (all-ids db table) :id) coll)]
       (println (format "Persisting %s new records into %s" (count new-records) table))
-      (jdbc/insert-multi! db (table-name key) new-records
+      (jdbc/insert-multi! db table
+                          (if before-persist
+                            (before-persist db new-records)
+                            new-records)
                           {:entities u/unkeywordize}))))
