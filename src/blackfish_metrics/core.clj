@@ -26,8 +26,8 @@
    :data/sale-lines (join-json-files "resources/data/sale_lines" :SaleLine)
    :data/items (join-json-files "resources/data/items" :Item)})
 
-(defn resource-exists? [db table id]
-  (not-empty (jdbc/query db [(format "select * from %s where id = ?" table) id])))
+(defn- all-ids [db table]
+  (set (map :id (jdbc/query db [(format "select id from %s" table)]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Persisting
@@ -36,6 +36,14 @@
   (->> (get-in sale-line [:Prices :ItemPrice])
        (filter (comp #{type} :useType))
        first :amount double->cents))
+
+(defn- stub-missing-relations [db sale-lines]
+  (let [item-ids (all-ids db "items")
+        sale-ids (all-ids db "sales")]
+    (map #(assoc %
+            :item-id (get item-ids (:item-id %) 0)
+            :sale-id (get sale-ids (:sale-id %) 0))
+         sale-lines)))
 
 (def SCHEMA
   [{:schema/table "sales"
@@ -55,13 +63,7 @@
                    :default_price (partial price-type "Default")}}
    {:schema/table "sale_lines"
     :schema/data-key :data/sale-lines
-    :before-fn (fn [db {:keys [sale-id item-id] :as sale-line}]
-                 ;; Take into account deleted records. SLOOOW improve!
-                 (let [item-id (if (resource-exists? db "items" item-id) item-id 0)
-                       sale-id (if (resource-exists? db "sales" sale-id) sale-id 0)]
-                   (assoc sale-line
-                     :item-id item-id
-                     :sale-id sale-id)))
+    :before-fn #'stub-missing-relations
     :schema/attrs {:id (comp parse-int :saleLineID)
                    :sale-id (comp parse-int :saleID)
                    :item-id (comp parse-int :itemID)
@@ -73,9 +75,6 @@
 
 (defn transform [schema-attrs item]
   (map-vals #(% item) schema-attrs))
-
-(defn persist! [db table coll]
-  (jdbc/insert-multi! db table coll))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Core
@@ -104,7 +103,7 @@
   (let [data (read-data)]
     (doseq [{:schema/keys [table data-key attrs] :keys [before-fn]} SCHEMA]
       (let [coll (map (partial transform attrs) (get data data-key))
-            coll (if before-fn (map (partial before-fn db) coll) coll)]
+            coll (if before-fn (before-fn db coll) coll)]
         (println (format "Persisting %s - %s records" table (count coll)))
         (jdbc/insert-multi! db table coll {:entities unkeywordize})))))
 
