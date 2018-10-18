@@ -8,3 +8,6 @@ pom.xml.asc
 resources/data
 /resources/secrets.edn
 metabase.db.*
+.terraform/
+*.tfstate*
+*.tfvars
