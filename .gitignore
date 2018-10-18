@@ -11,3 +11,4 @@ metabase.db.*
 .terraform/
 *.tfstate*
 *.tfvars
+resources/data.bak

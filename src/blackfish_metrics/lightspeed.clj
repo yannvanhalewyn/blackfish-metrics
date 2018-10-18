@@ -29,20 +29,25 @@
       (reset! access-token token))
     token))
 
+(defn- ordered-query-params [offset]
+  {:offset offset
+   :orderby "createTime"
+   :orderby_desc 1})
+
 (defn get-sales [{:keys [offset]}]
   (println "Fetching sales" offset)
   (request
    {:uri (api-uri "Sale.json")
-    :query-params {:offset offset}}))
+    :query-params (ordered-query-params offset)}))
 
 (defn get-items [{:keys [offset]}]
   (println "Fetching items" offset)
   (request
    {:uri (api-uri "Item.json")
-    :query-params {:offset offset}}))
+    :query-params (ordered-query-params offset)}))
 
 (defn get-sale-lines [{:keys [offset]}]
   (println "Fetching sale lines" offset)
   (request
    {:uri (api-uri "SaleLine.json")
-    :query-params {:offset offset}}))
+    :query-params (ordered-query-params offset)}))
