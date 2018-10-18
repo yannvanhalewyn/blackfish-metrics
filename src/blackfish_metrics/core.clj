@@ -22,7 +22,7 @@
 (defn read-data []
   {:data/sales (join-json-files "resources/data/sales" :Sale)
    :data/sale-lines (join-json-files "resources/data/sale_lines" :SaleLine)
-   :data/items (:Item (join-json-files "resources/data/items" :Item))})
+   :data/items (join-json-files "resources/data/items" :Item)})
 
 (defn resource-exists? [db table id]
   (not-empty (jdbc/query db [(format "select * from %s where id = ?" table) id])))

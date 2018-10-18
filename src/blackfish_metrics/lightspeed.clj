@@ -34,3 +34,15 @@
   (request
    {:uri (api-uri "Sale.json")
     :query-params {:offset offset}}))
+
+(defn get-items [{:keys [offset]}]
+  (println "Fetching items" offset)
+  (request
+   {:uri (api-uri "Item.json")
+    :query-params {:offset offset}}))
+
+(defn get-sale-lines [{:keys [offset]}]
+  (println "Fetching sale lines" offset)
+  (request
+   {:uri (api-uri "SaleLine.json")
+    :query-params {:offset offset}}))

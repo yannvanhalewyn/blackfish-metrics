@@ -14,4 +14,10 @@
   (doseq [i (range 5 31)]
     (fetch-and-write #'ls/get-sales (* 100 i) "resources/data/sales/"))
 
+  (doseq [i (range 1 9)]
+    (fetch-and-write #'ls/get-items (* 100 i) "resources/data/items/"))
+
+  (doseq [i (range 2 29)]
+    (fetch-and-write #'ls/get-sale-lines (* 100 i) "resources/data/sale_lines/"))
+
   )
