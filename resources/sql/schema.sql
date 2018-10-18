@@ -26,3 +26,8 @@ create table sale_lines (
   price integer not null,
   discount integer
 );
+--
+create view sale_lines_with_prices as
+  select l.*, i.default_price, i.msrp, i.online_price
+  from sale_lines l
+  join items i on l.item_id = i.id;
