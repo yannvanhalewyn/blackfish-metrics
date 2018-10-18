@@ -1,19 +1,28 @@
 (ns blackfish-metrics.core
-  (:require [clojure.data.json :as json]
+  (:require [blackfish-metrics.utils
+             :refer
+             [double->cents map-vals parse-bool parse-date parse-int unkeywordize]]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
-            [clojure.java.jdbc :as jdbc]))
+            [clojure.java.jdbc :as jdbc]
+            [clojure.string :as str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reading
 
-(defn read-json [filename]
-  (json/read (io/reader (io/resource (str "data/" filename)))
-             :key-fn keyword))
+(defn read-json [file]
+  (json/read file :key-fn keyword))
+
+(defn join-json-files [dir key]
+  (->> (file-seq (io/file dir))
+       (filter #(str/ends-with? (.getName %) ".json"))
+       (map (comp read-json io/reader))
+       (mapcat key)))
 
 (defn read-data []
-  {:data/sales (:Sale (read-json "sales.json"))
-   :data/sale-lines (:SaleLine (read-json "sale_lines.json"))
-   :data/items (:Item (read-json "items.json"))})
+  {:data/sales (join-json-files "resources/data/sales" :Sale)
+   :data/sale-lines (join-json-files "resources/data/sale_lines" :SaleLine)
+   :data/items (:Item (join-json-files "resources/data/items" :Item))})
 
 (defn resource-exists? [db table id]
   (not-empty (jdbc/query db [(format "select * from %s where id = ?" table) id])))

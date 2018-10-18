@@ -6,3 +6,5 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 resources/data
+/resources/secrets.edn
+metabase.db.*
