@@ -3,7 +3,8 @@
             [blackfish-metrics.sync :as sync]
             [chime :refer [chime-at]]
             [clj-time.core :as t]
-            [clj-time.periodic :refer [periodic-seq]]))
+            [clj-time.periodic :refer [periodic-seq]]
+            [clojure.core.async :as a]))
 
 (defn- work-hour? [d] ;; Sadly utc
   (<= 5 (t/hour d) 23))
@@ -15,9 +16,12 @@
   (assert (string? db))
   (if @scheduler
     (log/info "Scheduler already started")
-    (reset! scheduler
-            (chime-at (filter work-hour? (periodic-seq (t/now) (t/minutes 2)))
-                      (fn [_] (sync/import-missing! db))))))
+    (let [done-ch (a/chan)]
+      (reset! scheduler
+              (chime-at (filter work-hour? (periodic-seq (t/now) (t/minutes 2)))
+                        (fn [_] (sync/import-missing! db))
+                        {:on-finished #(a/put! done-ch :done)}))
+      done-ch)))
 
 (defn stop! []
   (log/info "Stopping scheduler")
