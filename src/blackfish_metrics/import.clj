@@ -1,33 +1,10 @@
 (ns blackfish-metrics.import
-  (:require [blackfish-metrics.lightspeed :as ls]
-            [blackfish-metrics.schema :as schema]
-            [cheshire.core :as json]
-            [clojure.java.io :as io]))
+  (:require [blackfish-metrics.schema :as schema]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; JSON (initial load)
+;; API to psql
 
-(defn- write-json-file [data filename]
-  (json/generate-stream data (io/writer filename) {:pretty true}))
-
-(defn- fetch-and-write [get-fn offset dir]
-  (write-json-file (:body (get-fn {:offset offset}))
-                   (str dir offset ".json")))
-
-(defn- download-all-to-json! []
-  (doseq [i (range 31)]
-    (fetch-and-write #'ls/get-sales (* 100 i) "resources/data/sales/"))
-
-  (doseq [i (range 9)]
-    (fetch-and-write #'ls/get-items (* 100 i) "resources/data/items/"))
-
-  (doseq [i (range 29)]
-    (fetch-and-write #'ls/get-sale-lines (* 100 i) "resources/data/sale_lines/")))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Straight to db (tx)
-
-(defn fetch-missing [get-fn parser latest-id]
+(defn fetch-latest [get-fn parser latest-id]
   (assert (pos-int? latest-id))
   (loop [acc []
          iteration 0]
@@ -45,10 +22,12 @@
         parse (schema/make-parser type)
         persist! (schema/make-persister type)
         latest-id (schema/latest-id db (::schema/table (schema/get-schema type)))
-        records (fetch-missing fetch parse latest-id)]
+        records (fetch-latest fetch parse latest-id)]
     (persist! db records)))
 
 (comment
   (let [db "postgresql://localhost:5432/blackfish_metrics"]
     (doseq [type [:data/sales :data/items :data/sale-lines]]
-      (import-missing! db type))))
+      (import-latest! db type)))
+
+  )

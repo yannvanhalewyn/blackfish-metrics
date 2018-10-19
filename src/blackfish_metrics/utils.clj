@@ -43,5 +43,8 @@
   [kw]
   (str/replace (name kw) #"-" "_"))
 
+(defn vectorize [x]
+  (if (map? x) (vector x) x))
+
 (def in-cents #(int (* 100 %)))
 (def double->cents (comp in-cents parse-double))
