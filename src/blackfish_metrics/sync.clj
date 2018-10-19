@@ -1,4 +1,4 @@
-(ns blackfish-metrics.import
+(ns blackfish-metrics.sync
   (:require [blackfish-metrics.schema :as schema]
             [blackfish-metrics.logging :as log]
             [blackfish-metrics.lightspeed :as ls]))
@@ -17,7 +17,7 @@
         (concat acc records)
         (recur (concat acc records) (inc iteration))))))
 
-(defn import-missing! [db type]
+(defn- import-missing!* [db type]
   (log/info "SYNC:" (name type))
   (ls/refresh-access-token!)
   (let [schema (schema/get-schema type)
@@ -28,9 +28,6 @@
         records (fetch-missing fetch parse latest-id)]
     (persist! db records)))
 
-(comment
-  (let [db "postgresql://localhost:5432/blackfish_metrics"]
-    (doseq [type [:data/sales :data/items :data/sale-lines]]
-      (import-missing! db type)))
-
-  )
+(defn import-missing! [db]
+  (doseq [type [:data/sales :data/items :data/sale-lines]]
+    (import-missing!* db type)))
