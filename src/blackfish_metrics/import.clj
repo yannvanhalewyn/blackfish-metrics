@@ -21,7 +21,7 @@
         fetch (::schema/api-fetch schema)
         parse (schema/make-parser type)
         persist! (schema/make-persister type)
-        latest-id (schema/latest-id db (::schema/table (schema/get-schema type)))
+        latest-id (schema/latest-id db (schema/table type))
         records (fetch-latest fetch parse latest-id)]
     (persist! db records)))
 

@@ -76,6 +76,8 @@
 (defn get-schema [key]
   (get SCHEMA_BY_KEY key))
 
+(def table (comp ::table get-schema))
+
 (defn make-persister [data-key]
   (fn [db coll]
     (let [{::keys [table before-persist]} (get-schema data-key)
