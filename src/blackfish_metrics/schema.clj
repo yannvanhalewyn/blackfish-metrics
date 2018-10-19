@@ -67,7 +67,7 @@
 (defn make-parser [key]
   (fn [coll]
     (map (fn [e] (u/map-vals #(% e) (get-in SCHEMA_BY_KEY [key ::attrs])))
-         (get coll (get-in SCHEMA_BY_KEY [key ::api-root])))))
+         (u/vectorize (get coll (get-in SCHEMA_BY_KEY [key ::api-root]))))))
 
 (defn get-schema [key]
   (get SCHEMA_BY_KEY key))
