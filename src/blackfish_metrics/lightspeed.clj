@@ -1,7 +1,8 @@
 (ns blackfish-metrics.lightspeed
   (:require [clj-http.client :as http]
             [clojure.edn :as edn]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [blackfish-metrics.logging :as log]))
 
 (def config (edn/read-string (slurp (io/resource "secrets.edn"))))
 (defonce access-token (atom nil))
@@ -15,7 +16,8 @@
                  :query-params query-params
                  :as :json}))
 
-(defn- refresh-access-token []
+(defn refresh-access-token! []
+  (log/info "FETCH: Refreshing access token")
   (let [token (get-in
                (http/post "https://cloud.lightspeedapp.com/oauth/access_token.php"
                           {:form-params
@@ -25,7 +27,8 @@
                             "grant_type" "refresh_token"}
                            :as :json})
                [:body :access_token])]
-    (when (string? token)
+    (when (and (string? token) (not= token @access-token))
+      (log/info "  New access token received")
       (reset! access-token token))
     token))
 
@@ -36,19 +39,19 @@
    :orderby_desc 1})
 
 (defn get-sales [params]
-  (println "FETCH: sales" (:offset params))
+  (log/info "FETCH: sales" (:offset params))
   (request
    {:uri (api-uri "Sale.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))
 
 (defn get-items [params]
-  (println "FETCH: items" (:offset params))
+  (log/info "FETCH: items" (:offset params))
   (request
    {:uri (api-uri "Item.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))
 
 (defn get-sale-lines [params]
-  (println "FETCH: sale lines" (:offset params))
+  (log/info "FETCH: sale lines" (:offset params))
   (request
    {:uri (api-uri "SaleLine.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))

@@ -1,7 +1,8 @@
 (ns blackfish-metrics.schema
   (:require [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.utils :as u]
-            [clojure.java.jdbc :as jdbc]))
+            [clojure.java.jdbc :as jdbc]
+            [blackfish-metrics.logging :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
@@ -82,7 +83,7 @@
   (fn [db coll]
     (let [{::keys [table before-persist]} (get-schema data-key)
           new-records (remove (comp (all-ids db table) :id) coll)]
-      (println (format "PERSIST: %s new records into %s" (count new-records) table))
+      (log/info (format "PERSIST: %s new records into %s" (count new-records) table))
       (jdbc/insert-multi! db table
                           (if before-persist
                             (before-persist db new-records)

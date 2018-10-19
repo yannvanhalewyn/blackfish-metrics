@@ -1,5 +1,7 @@
 (ns blackfish-metrics.import
-  (:require [blackfish-metrics.schema :as schema]))
+  (:require [blackfish-metrics.schema :as schema]
+            [blackfish-metrics.logging :as log]
+            [blackfish-metrics.lightspeed :as ls]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API to psql
@@ -10,7 +12,7 @@
          iteration 0]
     (let [records (parser (:body (get-fn {:offset (* 100 iteration)})))
           lowest-id (apply min (map :id records))]
-      (println (format "  [info] Lowest ID received: %s, looking for: %s" lowest-id latest-id))
+      (log/info (format "  Lowest ID received: %s, looking for: %s" lowest-id latest-id))
       (if (or (> iteration 10) (< lowest-id latest-id))
         (concat acc records)
         (recur (concat acc records) (inc iteration))))))
