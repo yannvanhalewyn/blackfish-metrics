@@ -44,10 +44,12 @@
     ::attrs {:id (comp u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
              :sku :systemSku
+             :manufacturer_id (comp u/parse-int :manufacturerID)
              :description :description
              :msrp (partial price-type "MSRP")
              :online_price (partial price-type "Online")
-             :default_price (partial price-type "Default")}}
+             :default_price (partial price-type "Default")
+             :archived (comp u/parse-bool :archived)}}
    {::table "sale_lines"
     ::data-key :data/sale-lines
     ::api-root :SaleLine
@@ -57,9 +59,11 @@
              :sale-id (comp u/parse-int :saleID)
              :item-id (comp u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
-             :unit-qty (comp u/parse-int :unitQuantity)
+             :qty (comp u/parse-int :unitQuantity)
              :unit-price (comp u/double->cents :unitPrice)
-             :price (comp u/double->cents :calcTotal)
+             :total (comp u/double->cents :calcTotal)
+             :subtotal (comp u/double->cents :calcSubtotal)
+             :fifo-price (comp u/double->cents :fifoCost)
              :discount (comp u/double->cents :discountAmount)}}])
 
 (def SCHEMA_BY_KEY (u/key-by ::data-key SCHEMA))

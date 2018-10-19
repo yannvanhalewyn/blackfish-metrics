@@ -6,13 +6,15 @@ create table sales (
 );
 --
 create table items (
-  id            integer primary key,
-  created_at    timestamp not null,
-  sku           varchar(255) not null,
-  description   varchar(255) not null,
-  msrp          integer not null,
-  online_price  integer not null,
-  default_price integer not null
+  id              integer primary key,
+  created_at      timestamp not null,
+  sku             varchar(255) not null,
+  manufacturer_id integer,
+  description     varchar(255) not null,
+  msrp            integer not null,
+  online_price    integer not null,
+  default_price   integer not null
+  archived        boolean
 );
 --
 create table sale_lines (
