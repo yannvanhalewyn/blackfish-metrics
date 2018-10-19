@@ -21,5 +21,5 @@
 
 (def env
   (merge
-   (read-env-file (io/resource "secrets.edn"))
+   (read-env-file "resources/secrets.edn")
    (read-system-env)))
