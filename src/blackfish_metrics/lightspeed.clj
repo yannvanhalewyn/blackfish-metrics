@@ -8,7 +8,7 @@
 
 (defn- api-uri [endpoint]
   (let [account-id (u/parse-int (:ls-account-id env))]
-    (assert (nat-int? (:ls-account-id env)))
+    (assert (nat-int? account-id))
     (format "https://api.lightspeedapp.com/API/Account/%s/%s"
             account-id endpoint)))
 
