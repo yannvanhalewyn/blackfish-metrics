@@ -2,14 +2,15 @@
   (:require [clj-http.client :as http]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [blackfish-metrics.logging :as log]))
+            [blackfish-metrics.logging :as log]
+            [blackfish-metrics.env :refer [env]]))
 
-(def config (edn/read-string (slurp (io/resource "secrets.edn"))))
 (defonce access-token (atom nil))
 
 (defn- api-uri [endpoint]
+  (assert (string? (:ls/account-id env)))
   (format "https://api.lightspeedapp.com/API/Account/%s/%s"
-          (:ls/account-id config) endpoint))
+          (:ls/account-id env) endpoint))
 
 (defn- request [{:keys [uri query-params]}]
   (http/get uri {:headers {"Authorization" (str "Bearer " @access-token)}
@@ -18,12 +19,13 @@
 
 (defn refresh-access-token! []
   (log/info "FETCH: Refreshing access token")
+  (assert (every? string? (map env [:ls/client-id :ls/client-secret :ls/refresh-token])))
   (let [token (get-in
                (http/post "https://cloud.lightspeedapp.com/oauth/access_token.php"
                           {:form-params
-                           {:client_id (:ls/client-id config)
-                            :client_secret (:ls/client-secret config)
-                            :refresh_token (:ls/refresh-token config)
+                           {:client_id (:ls/client-id env)
+                            :client_secret (:ls/client-secret env)
+                            :refresh_token (:ls/refresh-token env)
                             "grant_type" "refresh_token"}
                            :as :json})
                [:body :access_token])]
