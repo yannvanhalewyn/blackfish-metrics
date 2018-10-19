@@ -18,7 +18,8 @@
         (recur (concat acc records) (inc iteration))))))
 
 (defn import-missing! [db type]
-  (println "SYNC:" (name type))
+  (log/info "SYNC:" (name type))
+  (ls/refresh-access-token!)
   (let [schema (schema/get-schema type)
         fetch (::schema/api-fetch schema)
         parse (schema/make-parser type)
