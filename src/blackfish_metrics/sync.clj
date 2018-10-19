@@ -1,7 +1,7 @@
 (ns blackfish-metrics.sync
-  (:require [blackfish-metrics.schema :as schema]
+  (:require [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.logging :as log]
-            [blackfish-metrics.lightspeed :as ls]))
+            [blackfish-metrics.schema :as schema]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API to psql

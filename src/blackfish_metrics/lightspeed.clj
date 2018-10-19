@@ -1,10 +1,8 @@
 (ns blackfish-metrics.lightspeed
-  (:require [clj-http.client :as http]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]
+  (:require [blackfish-metrics.config :refer [env]]
             [blackfish-metrics.logging :as log]
-            [blackfish-metrics.config :refer [env]]
-            [blackfish-metrics.utils :as u]))
+            [blackfish-metrics.utils :as u]
+            [clj-http.client :as http]))
 
 (defonce access-token (atom nil))
 

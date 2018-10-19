@@ -1,7 +1,7 @@
 (ns blackfish-metrics.config
   (:require [clojure.edn :as edn]
-            [clojure.string :as str]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (defn- keywordize [s]
   (-> (str/lower-case s)

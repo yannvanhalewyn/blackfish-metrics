@@ -1,8 +1,8 @@
 (ns blackfish-metrics.schema
   (:require [blackfish-metrics.lightspeed :as ls]
+            [blackfish-metrics.logging :as log]
             [blackfish-metrics.utils :as u]
-            [clojure.java.jdbc :as jdbc]
-            [blackfish-metrics.logging :as log]))
+            [clojure.java.jdbc :as jdbc]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
