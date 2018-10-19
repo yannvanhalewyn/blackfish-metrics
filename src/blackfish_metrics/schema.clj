@@ -82,7 +82,7 @@
   (fn [db coll]
     (let [{::keys [table before-persist]} (get-schema data-key)
           new-records (remove (comp (all-ids db table) :id) coll)]
-      (println (format "Persisting %s new records into %s" (count new-records) table))
+      (println (format "PERSIST: %s new records into %s" (count new-records) table))
       (jdbc/insert-multi! db table
                           (if before-persist
                             (before-persist db new-records)

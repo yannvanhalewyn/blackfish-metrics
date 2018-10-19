@@ -10,13 +10,13 @@
          iteration 0]
     (let [records (parser (:body (get-fn {:offset (* 100 iteration)})))
           lowest-id (apply min (map :id records))]
-      (println (format "Lowest ID received: %s, looking for: %s" lowest-id latest-id))
+      (println (format "  [info] Lowest ID received: %s, looking for: %s" lowest-id latest-id))
       (if (or (> iteration 10) (< lowest-id latest-id))
         (concat acc records)
         (recur (concat acc records) (inc iteration))))))
 
 (defn import-missing! [db type]
-  (println "Running sync for " (name type))
+  (println "SYNC:" (name type))
   (let [schema (schema/get-schema type)
         fetch (::schema/api-fetch schema)
         parse (schema/make-parser type)

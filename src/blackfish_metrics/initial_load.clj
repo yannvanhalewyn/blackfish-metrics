@@ -50,10 +50,6 @@
       (let [parse (schema/make-parser schema-key)
             persist! (schema/make-persister schema-key)
             coll (parse (get data schema-key))]
-
-        (println (format "Persisting %s - %s records"
-                         (::table (schema/get-schema schema-key))
-                         (count coll)))
         (persist! db coll)))))
 
 (comment

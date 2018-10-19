@@ -36,19 +36,19 @@
    :orderby_desc 1})
 
 (defn get-sales [params]
-  (println "Fetching sales" (:offset params))
+  (println "FETCH: sales" (:offset params))
   (request
    {:uri (api-uri "Sale.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))
 
 (defn get-items [params]
-  (println "Fetching items" (:offset params))
+  (println "FETCH: items" (:offset params))
   (request
    {:uri (api-uri "Item.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))
 
 (defn get-sale-lines [params]
-  (println "Fetching sale lines" (:offset params))
+  (println "FETCH: sale lines" (:offset params))
   (request
    {:uri (api-uri "SaleLine.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))
