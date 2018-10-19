@@ -4,7 +4,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API to psql
 
-(defn fetch-latest [get-fn parser latest-id]
+(defn fetch-missing [get-fn parser latest-id]
   (assert (pos-int? latest-id))
   (loop [acc []
          iteration 0]
@@ -22,12 +22,12 @@
         parse (schema/make-parser type)
         persist! (schema/make-persister type)
         latest-id (schema/latest-id db (schema/table type))
-        records (fetch-latest fetch parse latest-id)]
+        records (fetch-missing fetch parse latest-id)]
     (persist! db records)))
 
 (comment
   (let [db "postgresql://localhost:5432/blackfish_metrics"]
     (doseq [type [:data/sales :data/items :data/sale-lines]]
-      (import-latest! db type)))
+      (import-missing! db type)))
 
   )
