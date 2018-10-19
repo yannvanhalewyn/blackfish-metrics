@@ -12,3 +12,4 @@ metabase.db.*
 *.tfstate*
 *.tfvars
 resources/data.bak
+/notes.org
