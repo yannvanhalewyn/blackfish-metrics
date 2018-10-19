@@ -1,4 +1,4 @@
-(ns blackfish-metrics.env
+(ns blackfish-metrics.config
   (:require [clojure.edn :as edn]
             [clojure.string :as str]
             [clojure.java.io :as io]))
