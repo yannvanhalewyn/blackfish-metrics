@@ -63,8 +63,6 @@
    :data/sale-lines (join-json-files "resources/data/sale_lines" :SaleLine)
    :data/items (join-json-files "resources/data/items" :Item)})
 
-(sc.api/defsc 2)
-
 (defn initialize-from-jsons! [db]
   (jdbc/execute! db ["truncate sales, sale_lines, items"])
   (insert-dummy-item! db)
@@ -74,8 +72,9 @@
       (let [parse (schema/make-parser key)
             persist! (schema/make-persister key)
             coll (parse (get data key))]
-        (sc.api/spy key)
-        (println (format "Persisting %s - %s records" (::table (schema/get-schema key)) (count coll)))
+        (println (format "Persisting %s - %s records"
+                         (::table (schema/get-schema key))
+                         (count coll)))
         (persist! db coll)))))
 
 (comment
