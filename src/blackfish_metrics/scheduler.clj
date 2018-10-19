@@ -12,6 +12,7 @@
 
 (defn start! [db]
   (log/info "Starting scheduler")
+  (assert (string? db))
   (if @scheduler
     (log/info "Scheduler already started")
     (reset! scheduler

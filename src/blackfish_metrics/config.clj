@@ -19,8 +19,7 @@
     (if (.exists env-file)
       (edn/read-string (slurp env-file)))))
 
-(defonce ^{:doc "A map of environment variables."}
-  env
+(def env
   (merge
    (read-env-file (io/resource "secrets.edn"))
    (read-system-env)))
