@@ -18,11 +18,11 @@
   (:id (first (jdbc/query db [(format "select id from %s order by id desc limit 1" table)]))))
 
 (defn- stub-missing-sale-line-relations [db sale-lines]
-  (let [item-ids (all-ids db "items")
-        sale-ids (all-ids db "sales")]
-    (map #(assoc %
-            :item-id (get item-ids (:item-id %) 0)
-            :sale-id (get sale-ids (:sale-id %) 0))
+  (let [item? (all-ids db "items")
+        sale? (all-ids db "sales")]
+    (map #(cond-> %
+            (not (item? (:item-id %))) (dissoc :item-id)
+            (not (sale? (:sale-id %))) (dissoc :sale-id))
          sale-lines)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

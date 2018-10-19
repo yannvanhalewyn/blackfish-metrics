@@ -27,26 +27,6 @@
     (fetch-and-write #'ls/get-sale-lines (* 100 i) (str dir "sale_lines/"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Stubbing data
-
-(defn- insert-dummy-item! [db]
-  (jdbc/insert! db "items"
-                {:id 0
-                 :created-at (java.sql.Timestamp. 1506816000000)
-                 :sku "0"
-                 :description "Dummy -- Item was deleted"
-                 :msrp 0
-                 :online-price 0
-                 :default-price 0}
-                {:entities u/unkeywordize}))
-
-(defn- insert-dummy-sale! [db]
-  (jdbc/insert!
-   db "sales"
-   {:id 0 :created-at (java.sql.Timestamp. 1506816000000) :completed false :total 0}
-   {:entities u/unkeywordize}))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Json to psql
 
 (defn read-json [file]
@@ -65,15 +45,14 @@
 
 (defn initialize-from-jsons! [db]
   (jdbc/execute! db ["truncate sales, sale_lines, items"])
-  (insert-dummy-item! db)
-  (insert-dummy-sale! db)
   (let [data (read-jsons)]
-    (doseq [key [:data/sales :data/items :data/sale-lines]]
-      (let [parse (schema/make-parser key)
-            persist! (schema/make-persister key)
-            coll (parse (get data key))]
+    (doseq [schema-key [:data/sales :data/items :data/sale-lines]]
+      (let [parse (schema/make-parser schema-key)
+            persist! (schema/make-persister schema-key)
+            coll (parse (get data schema-key))]
+
         (println (format "Persisting %s - %s records"
-                         (::table (schema/get-schema key))
+                         (::table (schema/get-schema schema-key))
                          (count coll)))
         (persist! db coll)))))
 

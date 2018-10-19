@@ -13,14 +13,14 @@ create table items (
   description     varchar(255) not null,
   msrp            integer not null,
   online_price    integer not null,
-  default_price   integer not null
+  default_price   integer not null,
   archived        boolean
 );
 --
 create table sale_lines (
   id         integer primary key,
-  sale_id    integer references sales not null,
-  item_id    integer references items not null,
+  sale_id    integer references sales,
+  item_id    integer references items,
   created_at timestamp not null,
 
   qty        integer not null default 1,
