@@ -46,5 +46,8 @@
 (defn vectorize [x]
   (if (map? x) (vector x) x))
 
+(defn zero->nil [x]
+  (if (= 0 x) nil x))
+
 (def in-cents #(int (* 100 %)))
 (def double->cents (comp in-cents parse-double))

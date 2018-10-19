@@ -44,7 +44,7 @@
     ::attrs {:id (comp u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
              :sku :systemSku
-             :manufacturer_id (comp u/parse-int :manufacturerID)
+             :manufacturer_id (comp u/zero->nil u/parse-int :manufacturerID)
              :description :description
              :msrp (partial price-type "MSRP")
              :online_price (partial price-type "Online")
