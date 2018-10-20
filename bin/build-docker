@@ -1,1 +1,1 @@
-docker build -t blackfish-metrics/scheduler .
+docker build -t yannvanhalewyn/blackfish-metrics-scheduler .
