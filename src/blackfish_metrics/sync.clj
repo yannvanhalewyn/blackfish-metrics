@@ -19,7 +19,6 @@
 
 (defn- import-missing!* [db type]
   (log/info "SYNC:" (name type))
-  (ls/refresh-access-token!)
   (let [schema (schema/get-schema type)
         fetch (::schema/api-fetch schema)
         parse (schema/make-parser type)
@@ -29,5 +28,6 @@
     (persist! db records)))
 
 (defn import-missing! [db]
+  (ls/refresh-access-token!)
   (doseq [type [:data/sales :data/items :data/sale-lines]]
     (import-missing!* db type)))
