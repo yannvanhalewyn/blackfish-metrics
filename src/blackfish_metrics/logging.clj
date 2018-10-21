@@ -1,11 +1,12 @@
 (ns blackfish-metrics.logging
-  (:require [clj-time.format :as f]
+  (:require [blackfish-metrics.utils :as u]
             [clj-time.core :as t]
+            [clj-time.format :as f]
             [clojure.string :as str]))
 
 (defn info [& msgs]
   (println
    (format "[%s] INFO %s"
-           (f/unparse (f/formatter "YYYY-MM-dd HH:mm:ss" (t/time-zone-for-id "Europe/Amsterdam"))
+           (f/unparse (f/formatter "YYYY-MM-dd HH:mm:ss" u/TZ)
                       (t/now))
            (str/join " " msgs))))

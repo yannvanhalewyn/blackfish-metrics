@@ -1,13 +1,14 @@
 (ns blackfish-metrics.scheduler
   (:require [blackfish-metrics.logging :as log]
             [blackfish-metrics.sync :as sync]
+            [blackfish-metrics.utils :as u]
             [chime :refer [chime-at]]
             [clj-time.core :as t]
             [clj-time.periodic :refer [periodic-seq]]
             [clojure.core.async :as a]))
 
-(defn- work-hour? [d] ;; Sadly utc
-  (<= 5 (t/hour d) 23))
+(defn- work-hour? [d]
+  (<= 7 (t/hour (u/to-tz d )) 22))
 
 (defonce scheduler (atom nil))
 

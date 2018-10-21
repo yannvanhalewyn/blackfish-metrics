@@ -18,11 +18,12 @@
   (when-let [x (first (re-find #"-?\d+(\.?\d+)?" (str s)))]
     (Double/parseDouble x)))
 
+(def TZ (t/time-zone-for-id "Europe/Amsterdam"))
+(def to-tz #(t/to-time-zone % TZ))
+
 (defn parse-date [s]
   (when-let [[_ x] (re-find #"(.+)\+" s)]
-    (t/to-time-zone
-     (f/parse (:date-hour-minute-second f/formatters) x)
-     (t/time-zone-for-id "Europe/Amsterdam"))))
+    (to-tz (f/parse (:date-hour-minute-second f/formatters) x))))
 
 (def parse-bool #(= "true" %))
 
