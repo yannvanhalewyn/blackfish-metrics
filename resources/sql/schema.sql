@@ -1,13 +1,13 @@
 create table sales (
   id integer primary key,
-  created_at timestamp not null,
+  created_at timestamp with time zone not null,
   completed boolean,
   total integer not null
 );
 --
 create table items (
   id              integer primary key,
-  created_at      timestamp not null,
+  created_at      timestamp with time zone not null,
   sku             varchar(255) not null,
   manufacturer_id integer,
   description     varchar(255) not null,
@@ -21,7 +21,7 @@ create table sale_lines (
   id         integer primary key,
   sale_id    integer references sales,
   item_id    integer references items,
-  created_at timestamp not null,
+  created_at timestamp with time zone not null,
 
   qty        integer not null default 1,
   unit_price integer not null,
