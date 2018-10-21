@@ -1,16 +1,12 @@
 (ns blackfish-metrics.schema
-  (:require [blackfish-metrics.lightspeed :as ls]
+  (:require [blackfish-metrics.db :as db]
+            [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.logging :as log]
             [blackfish-metrics.utils :as u]
-            [clj-time.coerce :refer [to-sql-time]]
             [clojure.java.jdbc :as jdbc]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
-
-(extend-protocol jdbc/ISQLValue
-  org.joda.time.DateTime
-  (sql-value [value] (to-sql-time value)))
 
 (defn- price-type [type sale-line]
   (->> (get-in sale-line [:Prices :ItemPrice])
@@ -27,8 +23,8 @@
   (let [item? (all-ids db "items")
         sale? (all-ids db "sales")]
     (map #(cond-> %
-            (not (item? (:item-id %))) (dissoc :item-id)
-            (not (sale? (:sale-id %))) (dissoc :sale-id))
+            (not (item? (:item-id %))) (assoc :item-id nil)
+            (not (sale? (:sale-id %))) (assoc :sale-id nil))
          sale-lines)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -87,10 +83,8 @@
 (defn make-persister [data-key]
   (fn [db coll]
     (let [{::keys [table before-persist]} (get-schema data-key)
-          new-records (remove (comp (all-ids db table) :id) coll)]
-      (log/info (format "PERSIST: %s new records into %s" (count new-records) table))
-      (jdbc/insert-multi! db table
-                          (if before-persist
-                            (before-persist db new-records)
-                            new-records)
-                          {:entities u/unkeywordize}))))
+          records (if before-persist (before-persist db coll) coll)
+          new-records (remove (comp (all-ids db table) :id) records)]
+      (log/info (format "PERSIST: %s - %s new records | %s upserts"
+                        table (count new-records) (count records)))
+      (db/upsert! db table records {:entities u/unkeywordize}))))
