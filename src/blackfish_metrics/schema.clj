@@ -2,10 +2,15 @@
   (:require [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.logging :as log]
             [blackfish-metrics.utils :as u]
+            [clj-time.coerce :refer [to-sql-time]]
             [clojure.java.jdbc :as jdbc]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
+
+(extend-protocol jdbc/ISQLValue
+  org.joda.time.DateTime
+  (sql-value [value] (to-sql-time value)))
 
 (defn- price-type [type sale-line]
   (->> (get-in sale-line [:Prices :ItemPrice])

@@ -1,6 +1,7 @@
 (ns blackfish-metrics.utils
-  (:require [clojure.string :as str])
-  (:import java.sql.Timestamp))
+  (:require [clj-time.core :as t]
+            [clj-time.format :as f]
+            [clojure.string :as str]))
 
 (defn parse-num [s parse-fn]
   (when-let [x (re-find #"-?\d+" (str s))]
@@ -18,8 +19,10 @@
     (Double/parseDouble x)))
 
 (defn parse-date [s]
-  (when-let [[_ date time] (re-find #"(.+)T(.+)\+" s)]
-    (Timestamp/valueOf (str date " " time))))
+  (when-let [[_ x] (re-find #"(.+)\+" s)]
+    (t/to-time-zone
+     (f/parse (:date-hour-minute-second f/formatters) x)
+     (t/time-zone-for-id "Europe/Amsterdam"))))
 
 (def parse-bool #(= "true" %))
 
