@@ -96,26 +96,15 @@ resource "aws_security_group" "allow_all" {
 }
 
 ################################################################################
-# Server
+# ECS
 
-resource "aws_instance" "server" {
-  ami                    = "ami-030aae8cba933aede"
-  instance_type          = "t2.micro"
-  subnet_id              = "${aws_subnet.public1.id}"
-  key_name               = "blackfish"
-  vpc_security_group_ids = ["${aws_security_group.allow_all.id}"]
-
-  tags {
-    Name          = "blackfish_metrics"
-  }
+resource "aws_ecr_repository" "repository" {
+  name = "blackfish-metrics"
 }
 
-resource "aws_eip" "ip" {
-  instance    = "${aws_instance.server.id}"
-  vpc         = true
-  instance    = "${aws_instance.server.id}"
+resource "aws_ecs_cluster" "cluster" {
+  name = "blackfish-metrics-cluster"
 }
-
 
 ################################################################################
 # DB
