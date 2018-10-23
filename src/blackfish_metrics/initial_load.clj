@@ -49,9 +49,19 @@
      db "manufacturers" [:id :name]
      (map (juxt (comp u/parse-int :manufacturerID) :name) manufacturers))))
 
+(defn- gender [{:keys [fullPathName] :as category}]
+  (str/lower-case (first (str/split fullPathName #"/" 2))))
+
+(defn insert-categories! [db]
+  (let [categories (:Category (read-json "resources/data/categories.json"))]
+    (jdbc/insert-multi!
+     db "categories" [:id :name :gender]
+     (map (juxt (comp u/parse-int :categoryID) :name gender) categories))))
+
 (defn initialize-from-jsons! [db]
-  (jdbc/execute! db ["truncate sales, sale_lines, items, manufacturers"])
+  (jdbc/execute! db ["truncate sales, sale_lines, items, manufacturers, categories"])
   (insert-manufacturers! db)
+  (insert-categories! db)
   (let [data (read-jsons)]
     (doseq [schema-key [:data/sales :data/items :data/sale-lines]]
       (let [parse (schema/make-parser schema-key)

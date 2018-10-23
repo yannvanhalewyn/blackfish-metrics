@@ -10,6 +10,7 @@ create table items (
   created_at      timestamp with time zone not null,
   sku             varchar(255) not null,
   manufacturer_id integer references manufacturers,
+  category_id     integer references categories,
   description     varchar(255) not null,
   msrp            integer not null,
   online_price    integer not null,
@@ -32,8 +33,14 @@ create table sale_lines (
 );
 --
 create table manufacturers (
-  id         integer primary key,
-  name       varchar(255)
+  id   integer primary key,
+  name varchar(255)
+);
+--
+create table categories (
+  id     integer primary key,
+  name   varchar(255),
+  gender varchar(255)
 );
 --
 create view sale_lines_with_prices as
