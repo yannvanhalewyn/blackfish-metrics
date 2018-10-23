@@ -43,8 +43,15 @@
    :data/sale-lines (join-json-files "resources/data/sale_lines" :SaleLine)
    :data/items (join-json-files "resources/data/items" :Item)})
 
+(defn insert-manufacturers! [db]
+  (let [manufacturers (:Manufacturer (read-json "resources/data/manufacturers.json"))]
+    (jdbc/insert-multi!
+     db "manufacturers" [:id :name]
+     (map (juxt (comp u/parse-int :manufacturerID) :name) manufacturers))))
+
 (defn initialize-from-jsons! [db]
-  (jdbc/execute! db ["truncate sales, sale_lines, items"])
+  (jdbc/execute! db ["truncate sales, sale_lines, items, manufacturers"])
+  (insert-manufacturers! db)
   (let [data (read-jsons)]
     (doseq [schema-key [:data/sales :data/items :data/sale-lines]]
       (let [parse (schema/make-parser schema-key)
