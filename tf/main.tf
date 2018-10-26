@@ -106,6 +106,13 @@ resource "aws_ecs_cluster" "cluster" {
   name = "blackfish-metrics-cluster"
 }
 
+resource "aws_eip" "ip" {
+  vpc = true
+  tags {
+    Name = "blackfish-metrics"
+  }
+}
+
 ################################################################################
 # DB
 
