@@ -48,16 +48,18 @@ create table vendors (
   name varchar(255)
 )
 --
-create view sale_lines_with_relations as
+create or replace view sale_lines_with_relations as
   select l.*, i.default_price, i.msrp, i.online_price,
     l.subtotal - l.fifo_price * l.qty as profit,
     case when m.name is null then 'unknown' else m.name end as manufacturer_name,
     case when c.name is null then 'unknown' else c.name end as category_name,
-    case when c.gender is null then 'unknown' else c.gender end as gender
+    case when c.gender is null then 'unknown' else c.gender end as gender,
+    case when v.name is null then 'unknown' else v.name end as vendor_name
   from sale_lines l
   join items i on l.item_id = i.id
   join sales s on l.sale_id = s.id
   left outer join categories c on i.category_id = c.id
   left outer join manufacturers m on i.manufacturer_id = m.id
+  left outer join vendors v on i.vendor_id = v.id
   where s.completed = true;
 --
