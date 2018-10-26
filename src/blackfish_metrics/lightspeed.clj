@@ -41,9 +41,11 @@
    :archived true
    :orderby_desc 1})
 
-(defn fetcher [endpoint]
-  (fn [params]
-    (log/info "FETCH:" endpoint (:offset params))
-    (request
-     {:uri (api-uri endpoint)
-      :query-params (merge DEFAULT-QUERY-PARAMS params)})))
+(defn fetcher
+  ([endpoint] (fetcher endpoint DEFAULT-QUERY-PARAMS))
+  ([endpoint default-params]
+   (fn [params]
+     (log/info "FETCH:" endpoint (:offset params))
+     (request
+      {:uri (api-uri endpoint)
+       :query-params (merge default-params params)}))))

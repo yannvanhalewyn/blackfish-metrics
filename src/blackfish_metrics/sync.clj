@@ -1,7 +1,8 @@
 (ns blackfish-metrics.sync
   (:require [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.logging :as log]
-            [blackfish-metrics.schema :as schema]))
+            [blackfish-metrics.schema :as schema])
+  (:import java.sql.BatchUpdateException))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API to psql
@@ -27,14 +28,22 @@
         records (fetch-missing fetch parse latest-id)]
     (persist! db records)))
 
-(defn import-missing! [db]
-  (ls/refresh-access-token!)
-  (doseq [type [:data/sales :data/items :data/sale-lines]]
+(defn- import-recents! [db types]
+  (doseq [type types]
     (import-missing!* db type)))
+
+(defn import-sales-with-relations-when-necessary! [db]
+  (ls/refresh-access-token!)
+  (try
+    (import-recents! db [:data/sales :data/sale-lines])
+    (catch BatchUpdateException e
+      (log/info "PSQL exception caught. Attempting to fetch missing relations.")
+      (import-recents! db [:data/manufacturers :data/vendors :data/categories :data/items])
+      (import-recents! db [:data/sales :data/sale-lines]))))
 
 (comment
 
   (let [db "postgresql://localhost:5432/blackfish_metrics"]
-    (import-missing! db))
+    (import-sales-with-relations-when-necessary! db))
 
   )

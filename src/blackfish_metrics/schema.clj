@@ -43,7 +43,8 @@
    {::table "vendors"
     ::data-key :data/vendors
     ::api-root :Vendor
-    ::api-fetch (ls/fetcher "Vendor.json")
+    ::api-fetch (ls/fetcher "Vendor.json" (assoc ls/DEFAULT-QUERY-PARAMS
+                                            :orderby "timeStamp"))
     ::attrs {:id (comp u/parse-int :vendorID)
              :name :name}}
    {::table "items"

@@ -20,7 +20,7 @@
     (let [done-ch (a/chan)]
       (reset! scheduler
               (chime-at (filter work-hour? (periodic-seq (t/now) (t/minutes 2)))
-                        (fn [_] (sync/import-missing! db))
+                        (fn [_] (sync/import-sales-with-relations-when-necessary! db))
                         {:on-finished #(a/put! done-ch :done)}))
       done-ch)))
 
