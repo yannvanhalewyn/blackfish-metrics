@@ -35,45 +35,7 @@
 ;; Schema
 
 (def SCHEMA
-  [{::table "sales"
-    ::data-key :data/sales
-    ::api-root :Sale
-    ::api-fetch #'ls/get-sales
-    ::attrs {:id (comp u/parse-int :saleID)
-             :created-at (comp u/parse-date :createTime)
-             :completed (comp u/parse-bool :completed)
-             :total (comp u/double->cents :total)}}
-   {::table "items"
-    ::data-key :data/items
-    ::api-root :Item
-    ::api-fetch #'ls/get-items
-    ::attrs {:id (comp u/parse-int :itemID)
-             :created-at (comp u/parse-date :createTime)
-             :sku :systemSku
-             :manufacturer-id (comp u/zero->nil u/parse-int :manufacturerID)
-             :vendor-id (comp u/zero->nil u/parse-int :defaultVendorID)
-             :category-id (comp u/zero->nil u/parse-int :categoryID)
-             :description :description
-             :msrp (partial price-type "MSRP")
-             :online-price (partial price-type "Online")
-             :default-price (partial price-type "Default")
-             :archived (comp u/parse-bool :archived)}}
-   {::table "sale_lines"
-    ::data-key :data/sale-lines
-    ::api-root :SaleLine
-    ::api-fetch #'ls/get-sale-lines
-    ::before-persist #'stub-missing-sale-line-relations
-    ::attrs {:id (comp u/parse-int :saleLineID)
-             :sale-id (comp u/parse-int :saleID)
-             :item-id (comp u/parse-int :itemID)
-             :created-at (comp u/parse-date :createTime)
-             :qty (comp u/parse-int :unitQuantity)
-             :unit-price (comp u/double->cents :unitPrice)
-             :total (comp u/double->cents :calcTotal)
-             :subtotal (comp u/double->cents :calcSubtotal)
-             :fifo-price (comp u/double->cents :fifoCost)
-             :discount (comp u/double->cents :discountAmount)}}
-   {::table "manufacturers"
+  [{::table "manufacturers"
     ::data-key :data/manufacturers
     ::api-root :Manufacturer
     ::api-fetch (ls/fetcher "Manufacturer.json")
@@ -91,9 +53,48 @@
     ::api-root :Vendor
     ::api-fetch (ls/fetcher "Vendor.json")
     ::attrs {:id (comp u/parse-int :vendorID)
-             :name :name}}])
+             :name :name}}
+   {::table "items"
+    ::data-key :data/items
+    ::api-root :Item
+    ::api-fetch #'ls/get-items
+    ::attrs {:id (comp u/parse-int :itemID)
+             :created-at (comp u/parse-date :createTime)
+             :sku :systemSku
+             :manufacturer-id (comp u/zero->nil u/parse-int :manufacturerID)
+             :vendor-id (comp u/zero->nil u/parse-int :defaultVendorID)
+             :category-id (comp u/zero->nil u/parse-int :categoryID)
+             :description :description
+             :msrp (partial price-type "MSRP")
+             :online-price (partial price-type "Online")
+             :default-price (partial price-type "Default")
+             :archived (comp u/parse-bool :archived)}}
+   {::table "sales"
+    ::data-key :data/sales
+    ::api-root :Sale
+    ::api-fetch #'ls/get-sales
+    ::attrs {:id (comp u/parse-int :saleID)
+             :created-at (comp u/parse-date :createTime)
+             :completed (comp u/parse-bool :completed)
+             :total (comp u/double->cents :total)}}
+   {::table "sale_lines"
+    ::data-key :data/sale-lines
+    ::api-root :SaleLine
+    ::api-fetch #'ls/get-sale-lines
+    ::before-persist #'stub-missing-sale-line-relations
+    ::attrs {:id (comp u/parse-int :saleLineID)
+             :sale-id (comp u/parse-int :saleID)
+             :item-id (comp u/parse-int :itemID)
+             :created-at (comp u/parse-date :createTime)
+             :qty (comp u/parse-int :unitQuantity)
+             :unit-price (comp u/double->cents :unitPrice)
+             :total (comp u/double->cents :calcTotal)
+             :subtotal (comp u/double->cents :calcSubtotal)
+             :fifo-price (comp u/double->cents :fifoCost)
+             :discount (comp u/double->cents :discountAmount)}}])
 
 (def SCHEMA_BY_KEY (u/key-by ::data-key SCHEMA))
+(def ALL_KEYS (map ::data-key SCHEMA))
 
 (defn make-parser [key]
   (fn [coll]
