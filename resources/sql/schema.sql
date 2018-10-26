@@ -2,7 +2,7 @@ create table sales (
   id integer primary key,
   created_at timestamp with time zone not null,
   completed boolean,
-  total integer not null
+  total numeric not null
 );
 --
 create table items (
@@ -12,9 +12,9 @@ create table items (
   manufacturer_id integer references manufacturers,
   category_id     integer references categories,
   description     varchar(255) not null,
-  msrp            integer not null,
-  online_price    integer not null,
-  default_price   integer not null,
+  msrp            numeric not null,
+  online_price    numeric not null,
+  default_price   numeric not null,
   archived        boolean
 );
 --
@@ -25,11 +25,11 @@ create table sale_lines (
   created_at timestamp with time zone not null,
 
   qty        integer not null default 1,
-  unit_price integer not null,
-  total      integer not null,
-  subtotal   integer not null,
-  fifo_price integer not null,
-  discount   integer
+  unit_price numeric not null,
+  total      numeric not null,
+  subtotal   numeric not null,
+  fifo_price numeric not null,
+  discount   numeric
 );
 --
 create table manufacturers (

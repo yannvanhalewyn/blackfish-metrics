@@ -15,7 +15,7 @@
 (defn- price-type [type sale-line]
   (->> (get-in sale-line [:Prices :ItemPrice])
        (filter (comp #{type} :useType))
-       first :amount u/double->cents))
+       first :amount u/parse-double))
 
 (defn- all-ids [db table]
   (set (map :id (jdbc/query db [(format "select id from %s" table)]))))
@@ -69,7 +69,7 @@
     ::attrs {:id (comp u/parse-int :saleID)
              :created-at (comp u/parse-date :createTime)
              :completed (comp u/parse-bool :completed)
-             :total (comp u/double->cents :total)}}
+             :total (comp u/parse-double :total)}}
    {::table "sale_lines"
     ::data-key :data/sale-lines
     ::api-root :SaleLine
@@ -79,11 +79,11 @@
              :item-id (comp u/zero->nil u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
              :qty (comp u/parse-int :unitQuantity)
-             :unit-price (comp u/double->cents :unitPrice)
-             :total (comp u/double->cents :calcTotal)
-             :subtotal (comp u/double->cents :calcSubtotal)
-             :fifo-price (comp u/double->cents :fifoCost)
-             :discount (comp u/double->cents :discountAmount)}}])
+             :unit-price (comp u/parse-double :unitPrice)
+             :total (comp u/parse-double :calcTotal)
+             :subtotal (comp u/parse-double :calcSubtotal)
+             :fifo-price (comp u/parse-double :fifoCost)
+             :discount (comp u/parse-double :discountAmount)}}])
 
 (def SCHEMA_BY_KEY (u/key-by ::data-key SCHEMA))
 (def ALL_KEYS (map ::data-key SCHEMA))
