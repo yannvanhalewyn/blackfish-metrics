@@ -46,12 +46,13 @@
     ::attrs {:id (comp u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
              :sku :systemSku
-             :manufacturer_id (comp u/zero->nil u/parse-int :manufacturerID)
-             :category_id (comp u/zero->nil u/parse-int :categoryID)
+             :manufacturer-id (comp u/zero->nil u/parse-int :manufacturerID)
+             :vendor-id (u/parse-int :defaultVendorID)
+             :category-id (comp u/zero->nil u/parse-int :categoryID)
              :description :description
              :msrp (partial price-type "MSRP")
-             :online_price (partial price-type "Online")
-             :default_price (partial price-type "Default")
+             :online-price (partial price-type "Online")
+             :default-price (partial price-type "Default")
              :archived (comp u/parse-bool :archived)}}
    {::table "sale_lines"
     ::data-key :data/sale-lines
@@ -67,7 +68,13 @@
              :total (comp u/double->cents :calcTotal)
              :subtotal (comp u/double->cents :calcSubtotal)
              :fifo-price (comp u/double->cents :fifoCost)
-             :discount (comp u/double->cents :discountAmount)}}])
+             :discount (comp u/double->cents :discountAmount)}}
+   {::table "vendors"
+    ::data-key :data/vendors
+    ::api-root :Vendor
+    ::api-fetch (ls/fetcher "Vendor.json")
+    ::attrs {:id (comp u/parse-int :vendorID)
+             :name :name}}])
 
 (def SCHEMA_BY_KEY (u/key-by ::data-key SCHEMA))
 

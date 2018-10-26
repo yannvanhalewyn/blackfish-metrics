@@ -36,11 +36,17 @@ create table manufacturers (
   id   integer primary key,
   name varchar(255)
 );
+--
 create table categories (
   id     integer primary key,
   name   varchar(255),
   gender varchar(255)
 );
+--
+create table vendors (
+  id integer primary key,
+  name varchar(255)
+)
 --
 create view sale_lines_with_relations as
   select l.*, i.default_price, i.msrp, i.online_price,

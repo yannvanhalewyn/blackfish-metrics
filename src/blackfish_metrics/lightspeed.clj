@@ -2,7 +2,8 @@
   (:require [blackfish-metrics.config :refer [env]]
             [blackfish-metrics.logging :as log]
             [blackfish-metrics.utils :as u]
-            [clj-http.client :as http]))
+            [clj-http.client :as http]
+            [clojure.string :as str]))
 
 (defonce access-token (atom nil))
 
@@ -57,3 +58,10 @@
   (request
    {:uri (api-uri "SaleLine.json")
     :query-params (merge DEFAULT-QUERY-PARAMS params)}))
+
+(defn fetcher [endpoint]
+  (fn [params]
+    (log/info "FETCH:" endpoint (:offset params))
+    (request
+     {:uri (api-uri endpoint)
+      :query-params (merge DEFAULT-QUERY-PARAMS params)})))
