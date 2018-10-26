@@ -23,14 +23,6 @@
 (defn latest-id [db table]
   (:id (first (jdbc/query db [(format "select id from %s order by id desc limit 1" table)]))))
 
-(defn- stub-missing-sale-line-relations [db sale-lines]
-  (let [item? (all-ids db "items")
-        sale? (all-ids db "sales")]
-    (map #(cond-> %
-            (not (item? (:item-id %))) (assoc :item-id nil)
-            (not (sale? (:sale-id %))) (assoc :sale-id nil))
-         sale-lines)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Schema
 
@@ -81,10 +73,9 @@
     ::data-key :data/sale-lines
     ::api-root :SaleLine
     ::api-fetch (ls/fetcher "SaleLine.json")
-    ::before-persist #'stub-missing-sale-line-relations
     ::attrs {:id (comp u/parse-int :saleLineID)
-             :sale-id (comp u/parse-int :saleID)
-             :item-id (comp u/parse-int :itemID)
+             :sale-id (comp u/zero->nil u/parse-int :saleID)
+             :item-id (comp u/zero->nil u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
              :qty (comp u/parse-int :unitQuantity)
              :unit-price (comp u/double->cents :unitPrice)
@@ -108,9 +99,8 @@
 
 (defn make-persister [data-key]
   (fn [db coll]
-    (let [{::keys [table before-persist]} (get-schema data-key)
-          records (if before-persist (before-persist db coll) coll)
-          new-records (remove (comp (all-ids db table) :id) records)]
+    (let [{::keys [table]} (get-schema data-key)
+          records (remove (comp (all-ids db table) :id) coll)]
       (log/info (format "PERSIST: %s - %s new records | %s upserts"
-                        table (count new-records) (count records)))
-      (db/upsert! db table records {:entities u/unkeywordize}))))
+                        table (count records) (count coll)))
+      (db/upsert! db table coll {:entities u/unkeywordize}))))
