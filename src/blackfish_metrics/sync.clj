@@ -31,3 +31,10 @@
   (ls/refresh-access-token!)
   (doseq [type [:data/sales :data/items :data/sale-lines]]
     (import-missing!* db type)))
+
+(comment
+
+  (let [db "postgresql://localhost:5432/blackfish_metrics"]
+    (import-missing! db))
+
+  )

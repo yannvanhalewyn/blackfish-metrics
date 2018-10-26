@@ -22,11 +22,9 @@
   (let [{:keys [count offset limit]} (get body (keyword "@attributes"))]
     (< (+ (u/parse-int offset) (u/parse-int limit)) (u/parse-int count))))
 
-(defn- download-all-to-json! [dir]
+(defn- download-all-to-json! [dir data-keys]
   (ls/refresh-access-token!)
-  (doseq [{::schema/keys [api-fetch table]}
-          (map schema/get-schema [:data/manufacturers :data/categories :data/vendors
-                                  :data/sales :data/items :data/sale-lines])]
+  (doseq [{::schema/keys [api-fetch table]} (map schema/get-schema data-keys)]
     (io/make-parents (str dir table "/0.json"))
     (loop [offset 0]
       (let [result (fetch-and-write! api-fetch offset (str dir table "/"))]
@@ -46,21 +44,22 @@
             (map (comp read-json io/reader))
             (mapcat (comp u/vectorize key)))})
 
-(defn initialize-from-jsons! [db]
-  (jdbc/execute! db [(str "truncate " (str/join ", " (map ::schema/table schema/SCHEMA)))])
-  (doseq [{::schema/keys [table data-key api-root]} schema/SCHEMA]
-    (let [parse (schema/make-parser data-key)
-          persist! (schema/make-persister data-key)
-          data (parse (join-json-files (str "resources/data/" table) api-root))]
-      (persist! db data))))
+(defn initialize-from-jsons! [db data-keys]
+  (let [schemas (map schema/get-schema data-keys)]
+    (jdbc/execute! db [(str "truncate " (str/join ", " (map ::schema/table schemas)))])
+    (doseq [{::schema/keys [table data-key api-root]} schemas]
+      (let [parse (schema/make-parser data-key)
+            persist! (schema/make-persister data-key)
+            data (parse (join-json-files (str "resources/data/" table) api-root))]
+        (persist! db data)))))
 
 (comment
 
   ;; Download all data to json files
-  (download-all-to-json! "resources/data/")
+  (download-all-to-json! "resources/data/" schema/ALL_KEYS)
 
   ;; Read json files and plug them in a database
   (let [db "postgresql://localhost:5432/blackfish_metrics"]
-    (initialize-from-jsons! db))
+    (initialize-from-jsons! db schema/ALL_KEYS))
 
   )
