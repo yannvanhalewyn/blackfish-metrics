@@ -10,21 +10,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Lightspeed to json files
 
-(defn- fetch-and-write [get-fn offset dir]
-  (json/generate-stream
-   (:body (get-fn {:offset offset :orderby nil :orderby_desc nil}))
-   (io/writer (str dir offset ".json"))
-   {:pretty true}))
+(defn- fetch-and-write! [get-fn offset dir]
+  (let [{:keys [body]} (get-fn {:offset offset :orderby nil :orderby_desc nil})]
+    (json/generate-stream body (io/writer (format "%s%04d%s" dir offset ".json"))
+                          {:pretty true})
+    body))
+
+(defn- more-records?
+  "Based on the response, are there more records to be fetched?"
+  [body]
+  (let [{:keys [count offset limit]} (get body (keyword "@attributes"))]
+    (< (+ (u/parse-int offset) (u/parse-int limit)) (u/parse-int count))))
 
 (defn- download-all-to-json! [dir]
-  (doseq [i (range 31)]
-    (fetch-and-write #'ls/get-sales (* 100 i) (str dir "sales/")))
-
-  (doseq [i (range 9)]
-    (fetch-and-write #'ls/get-items (* 100 i) (str dir "items/")))
-
-  (doseq [i (range 29)]
-    (fetch-and-write #'ls/get-sale-lines (* 100 i) (str dir "sale_lines/"))))
+  (ls/refresh-access-token!)
+  (doseq [{::schema/keys [api-fetch table]}
+          (map schema/get-schema [:data/sales :data/items
+                                  :data/sale-lines :data/vendors])]
+    (io/make-parents (str dir table "/0.json"))
+    (loop [offset 0]
+      (let [result (fetch-and-write! api-fetch offset (str dir table "/"))]
+        (if (more-records? result)
+          (recur (+ offset 100))
+          :done)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Json to psql
