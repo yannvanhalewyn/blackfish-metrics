@@ -57,7 +57,7 @@
    {::table "items"
     ::data-key :data/items
     ::api-root :Item
-    ::api-fetch #'ls/get-items
+    ::api-fetch (ls/fetcher "Item.json")
     ::attrs {:id (comp u/parse-int :itemID)
              :created-at (comp u/parse-date :createTime)
              :sku :systemSku
@@ -72,7 +72,7 @@
    {::table "sales"
     ::data-key :data/sales
     ::api-root :Sale
-    ::api-fetch #'ls/get-sales
+    ::api-fetch (ls/fetcher "Sale.json")
     ::attrs {:id (comp u/parse-int :saleID)
              :created-at (comp u/parse-date :createTime)
              :completed (comp u/parse-bool :completed)
@@ -80,7 +80,7 @@
    {::table "sale_lines"
     ::data-key :data/sale-lines
     ::api-root :SaleLine
-    ::api-fetch #'ls/get-sale-lines
+    ::api-fetch (ls/fetcher "SaleLine.json")
     ::before-persist #'stub-missing-sale-line-relations
     ::attrs {:id (comp u/parse-int :saleLineID)
              :sale-id (comp u/parse-int :saleID)

@@ -41,24 +41,6 @@
    :archived true
    :orderby_desc 1})
 
-(defn get-sales [params]
-  (log/info "FETCH: sales" (:offset params))
-  (request
-   {:uri (api-uri "Sale.json")
-    :query-params (merge DEFAULT-QUERY-PARAMS params)}))
-
-(defn get-items [params]
-  (log/info "FETCH: items" (:offset params))
-  (request
-   {:uri (api-uri "Item.json")
-    :query-params (merge DEFAULT-QUERY-PARAMS params)}))
-
-(defn get-sale-lines [params]
-  (log/info "FETCH: sale lines" (:offset params))
-  (request
-   {:uri (api-uri "SaleLine.json")
-    :query-params (merge DEFAULT-QUERY-PARAMS params)}))
-
 (defn fetcher [endpoint]
   (fn [params]
     (log/info "FETCH:" endpoint (:offset params))
