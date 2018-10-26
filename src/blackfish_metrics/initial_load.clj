@@ -25,8 +25,8 @@
 (defn- download-all-to-json! [dir]
   (ls/refresh-access-token!)
   (doseq [{::schema/keys [api-fetch table]}
-          (map schema/get-schema [:data/sales :data/items
-                                  :data/sale-lines :data/vendors])]
+          (map schema/get-schema [:data/manufacturers :data/categories :data/vendors
+                                  :data/sales :data/items :data/sale-lines])]
     (io/make-parents (str dir table "/0.json"))
     (loop [offset 0]
       (let [result (fetch-and-write! api-fetch offset (str dir table "/"))]
@@ -46,36 +46,13 @@
             (map (comp read-json io/reader))
             (mapcat (comp u/vectorize key)))})
 
-(defn read-jsons []
-  {:data/sales (join-json-files "resources/data/sales" :Sale)
-   :data/sale-lines (join-json-files "resources/data/sale_lines" :SaleLine)
-   :data/items (join-json-files "resources/data/items" :Item)})
-
-(defn insert-manufacturers! [db]
-  (let [manufacturers (:Manufacturer (read-json "resources/data/manufacturers.json"))]
-    (jdbc/insert-multi!
-     db "manufacturers" [:id :name]
-     (map (juxt (comp u/parse-int :manufacturerID) :name) manufacturers))))
-
-(defn- gender [{:keys [fullPathName] :as category}]
-  (str/lower-case (first (str/split fullPathName #"/" 2))))
-
-(defn insert-categories! [db]
-  (let [categories (:Category (read-json "resources/data/categories.json"))]
-    (jdbc/insert-multi!
-     db "categories" [:id :name :gender]
-     (map (juxt (comp u/parse-int :categoryID) :name gender) categories))))
-
 (defn initialize-from-jsons! [db]
-  (jdbc/execute! db ["truncate sales, sale_lines, items, manufacturers, categories"])
-  (insert-manufacturers! db)
-  (insert-categories! db)
-  (let [data (read-jsons)]
-    (doseq [schema-key [:data/sales :data/items :data/sale-lines]]
-      (let [parse (schema/make-parser schema-key)
-            persist! (schema/make-persister schema-key)
-            coll (parse (get data schema-key))]
-        (persist! db coll)))))
+  (jdbc/execute! db [(str "truncate " (str/join ", " (map ::schema/table schema/SCHEMA)))])
+  (doseq [{::schema/keys [table data-key api-root]} schema/SCHEMA]
+    (let [parse (schema/make-parser data-key)
+          persist! (schema/make-persister data-key)
+          data (parse (join-json-files (str "resources/data/" table) api-root))]
+      (persist! db data))))
 
 (comment
 
