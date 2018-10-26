@@ -3,10 +3,14 @@
             [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.logging :as log]
             [blackfish-metrics.utils :as u]
-            [clojure.java.jdbc :as jdbc]))
+            [clojure.java.jdbc :as jdbc]
+            [clojure.string :as str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
+
+(defn- category-gender [{:keys [fullPathName] :as category}]
+  (str/lower-case (first (str/split fullPathName #"/" 2))))
 
 (defn- price-type [type sale-line]
   (->> (get-in sale-line [:Prices :ItemPrice])
@@ -47,7 +51,7 @@
              :created-at (comp u/parse-date :createTime)
              :sku :systemSku
              :manufacturer-id (comp u/zero->nil u/parse-int :manufacturerID)
-             :vendor-id (u/parse-int :defaultVendorID)
+             :vendor-id (comp u/zero->nil u/parse-int :defaultVendorID)
              :category-id (comp u/zero->nil u/parse-int :categoryID)
              :description :description
              :msrp (partial price-type "MSRP")
@@ -69,6 +73,19 @@
              :subtotal (comp u/double->cents :calcSubtotal)
              :fifo-price (comp u/double->cents :fifoCost)
              :discount (comp u/double->cents :discountAmount)}}
+   {::table "manufacturers"
+    ::data-key :data/manufacturers
+    ::api-root :Manufacturer
+    ::api-fetch (ls/fetcher "Manufacturer.json")
+    ::attrs {:id (comp u/parse-int :manufacturerID)
+             :name :name}}
+   {::table "categories"
+    ::data-key :data/categories
+    ::api-root :Category
+    ::api-fetch (ls/fetcher "Category.json")
+    ::attrs {:id (comp u/parse-int :categoryID)
+             :name :name
+             :gender category-gender}}
    {::table "vendors"
     ::data-key :data/vendors
     ::api-root :Vendor
