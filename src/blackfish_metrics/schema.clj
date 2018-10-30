@@ -20,9 +20,6 @@
 (defn- all-ids [db table]
   (set (map :id (jdbc/query db [(format "select id from %s" table)]))))
 
-(defn latest-id [db table]
-  (:id (first (jdbc/query db [(format "select id from %s order by id desc limit 1" table)]))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Schema
 

@@ -1,8 +1,15 @@
 (ns blackfish-metrics.sync
   (:require [blackfish-metrics.lightspeed :as ls]
             [blackfish-metrics.logging :as log]
-            [blackfish-metrics.schema :as schema])
+            [blackfish-metrics.schema :as schema]
+            [clojure.java.jdbc :as jdbc])
   (:import java.sql.BatchUpdateException))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+
+(defn- get-latest-id [db table]
+  (:id (first (jdbc/query db [(format "select id from %s order by id desc limit 1" table)]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API to psql
@@ -24,7 +31,7 @@
         fetch (::schema/api-fetch schema)
         parse (schema/make-parser type)
         persist! (schema/make-persister type)
-        latest-id (schema/latest-id db (schema/table type))
+        latest-id (get-latest-id db (schema/table type))
         records (fetch-missing fetch parse latest-id)]
     (persist! db records)))
 
