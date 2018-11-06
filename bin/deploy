@@ -2,33 +2,35 @@
 
 set -eu -o pipefail
 
+aws_profile="timocox"
+
 ecs_cluster_name="blackfish-metrics-cluster"
 ecs_service_name="metrics-scheduler"
 ecs_task_definition_name="metrics-scheduler"
 
-repo_url="179026462843.dkr.ecr.eu-central-1.amazonaws.com"
+repo_url="410970714795.dkr.ecr.eu-central-1.amazonaws.com"
 repo_name="blackfish-metrics"
 version_name=${1:-$(date +%Y-%m-%dT%Hh%Mm%Ss)}
 
 image_name="$repo_url/$repo_name:$version_name"
 
-echo "Building Uberjar..."
-lein uberjar
+# echo "Building Uberjar..."
+# lein uberjar
 
-echo "Logging docker into ecr repository $repo_name..."
-$(aws ecr get-login --no-include-email)
+# echo "Logging docker into ecr repository $repo_name..."
+# $(aws ecr get-login --no-include-email --profile $aws_profile)
 
-echo "Building docker image $image_name"
-docker build -t $image_name .
+# echo "Building docker image $image_name"
+# docker build -t $image_name .
 
-echo "Pushing docker image"
-docker push $image_name
+# echo "Pushing docker image"
+# docker push $image_name
 
 echo "Updating task definition to new container image $image_name"
-old_task_def=$(aws ecs describe-task-definition --task-definition $ecs_task_definition_name --output json)
+old_task_def=$(aws ecs describe-task-definition --task-definition $ecs_task_definition_name --output json --profile $aws_profile)
 new_task_def=$(echo $old_task_def | jq --arg NDI $image_name ".taskDefinition.containerDefinitions[0].image=\$NDI")
 final_task=$(echo $new_task_def | jq ".taskDefinition|{family: .family, volumes: .volumes, containerDefinitions: .containerDefinitions}")
-aws ecs register-task-definition --family "$ecs_task_definition_name" --cli-input-json "$final_task"
+aws ecs register-task-definition --family "$ecs_task_definition_name" --cli-input-json "$final_task" --profile $aws_profile
 
 echo "Updating service $ecs_service_name"
-aws ecs update-service --service "$ecs_service_name" --task-definition "$ecs_task_definition_name" --cluster "$ecs_cluster_name"
+aws ecs update-service --service "$ecs_service_name" --task-definition "$ecs_task_definition_name" --cluster "$ecs_cluster_name" --profile $aws_profile

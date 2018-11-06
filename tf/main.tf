@@ -1,7 +1,7 @@
 variable "rds_password" {}
 
 provider "aws" {
-  profile    = "default"
+  profile    = "timocox"
   region     = "eu-central-1"
 }
 
