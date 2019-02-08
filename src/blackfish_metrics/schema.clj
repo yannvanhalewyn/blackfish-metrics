@@ -23,6 +23,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Schema
 
+(defn- subtotal-with-discount [line]
+  (- (u/parse-double (:calcSubtotal line)) (u/parse-double (:calcLineDiscount line))))
+
 (def SCHEMA
   [{::table "manufacturers"
     ::data-key :data/manufacturers
@@ -78,9 +81,9 @@
              :qty (comp u/parse-int :unitQuantity)
              :unit-price (comp u/parse-double :unitPrice)
              :total (comp u/parse-double :calcTotal)
-             :subtotal (comp u/parse-double :calcSubtotal)
+             :subtotal subtotal-with-discount
              :fifo-price (comp u/parse-double :fifoCost)
-             :discount (comp u/parse-double :discountAmount)}}])
+             :discount (comp u/parse-double :calcLineDiscount)}}])
 
 (def SCHEMA_BY_KEY (u/key-by ::data-key SCHEMA))
 (def ALL_KEYS (map ::data-key SCHEMA))

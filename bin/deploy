@@ -14,17 +14,17 @@ version_name=${1:-$(date +%Y-%m-%dT%Hh%Mm%Ss)}
 
 image_name="$repo_url/$repo_name:$version_name"
 
-# echo "Building Uberjar..."
-# lein uberjar
+echo "Building Uberjar..."
+lein uberjar
 
-# echo "Logging docker into ecr repository $repo_name..."
-# $(aws ecr get-login --no-include-email --profile $aws_profile)
+echo "Logging docker into ecr repository $repo_name..."
+$(aws ecr get-login --no-include-email --profile $aws_profile)
 
-# echo "Building docker image $image_name"
-# docker build -t $image_name .
+echo "Building docker image $image_name"
+docker build -t $image_name .
 
-# echo "Pushing docker image"
-# docker push $image_name
+echo "Pushing docker image"
+docker push $image_name
 
 echo "Updating task definition to new container image $image_name"
 old_task_def=$(aws ecs describe-task-definition --task-definition $ecs_task_definition_name --output json --profile $aws_profile)
