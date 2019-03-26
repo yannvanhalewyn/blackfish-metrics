@@ -69,6 +69,7 @@
     ::attrs {:id (comp u/parse-int :saleID)
              :created-at (comp u/parse-date :createTime)
              :completed (comp u/parse-bool :completed)
+             :online (comp #(= "2" %) :registerID)
              :total (comp u/parse-double :total)}}
    {::table "sale_lines"
     ::data-key :data/sale-lines
