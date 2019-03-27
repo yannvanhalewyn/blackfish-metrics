@@ -2,7 +2,7 @@ create table sales (
   id integer primary key,
   created_at timestamp with time zone not null,
   completed boolean,
-  online boolean default false,
+  method varchar(255) default 'store',
   total numeric not null
 );
 --

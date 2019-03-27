@@ -12,6 +12,11 @@
 (defn- category-gender [{:keys [fullPathName] :as category}]
   (str/lower-case (first (str/split fullPathName #"/" 2))))
 
+(defn- sale-method
+  "Wether the sale was online or at the store"
+  [{:keys [registerID]}]
+  (if (= "1" registerID) "Store" "Online"))
+
 (defn- price-type [type sale-line]
   (->> (get-in sale-line [:Prices :ItemPrice])
        (filter (comp #{type} :useType))
@@ -69,7 +74,7 @@
     ::attrs {:id (comp u/parse-int :saleID)
              :created-at (comp u/parse-date :createTime)
              :completed (comp u/parse-bool :completed)
-             :online (comp #(= "2" %) :registerID)
+             :method sale-method
              :total (comp u/parse-double :total)}}
    {::table "sale_lines"
     ::data-key :data/sale-lines
